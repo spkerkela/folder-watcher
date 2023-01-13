@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -10,6 +11,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: folder-watcher <folder-to-watch> <command> <...args> $filepath")
+		os.Exit(0)
+	}
 	folderToWatch := os.Args[1]
 	commands := os.Args[2:]
 	watcher, err := fsnotify.NewWatcher()
@@ -28,7 +33,8 @@ func main() {
 				rest := append(commands[1:], event.Name)
 
 				log.Printf("executing %s %s", commands[0], strings.Join(rest, " "))
-				exec.Command(commands[0], rest...).Run()
+				out, _ := exec.Command(commands[0], rest...).CombinedOutput()
+				log.Printf("\n%s", out)
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
